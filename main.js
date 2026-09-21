@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+window.__GK_SHOWROOM_READY__=true;
 
 const productData={
-  hoodie:{name:'FIELD HOODIE',price:148,priceLabel:'$148',image:'https://cdn.3dassets.dev/assets/27162/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/27162/v1/model.glb',desc:'Heavyweight pullover hoodie with a field-first silhouette, restrained branding and a substantial hand feel.'},
+  hoodie:{name:'FIELD HOODIE',price:148,priceLabel:'$148',image:'https://cdn.3dassets.dev/assets/27162/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/35452/v1/model.glb',desc:'Heavyweight pullover hoodie with a field-first silhouette, restrained branding and a substantial hand feel.'},
   zip:{name:'OPERATOR ZIP',price:168,priceLabel:'$168',image:'https://cdn.3dassets.dev/assets/27161/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/27161/v1/model.glb',desc:'Full-zip technical layer with a hooded outerwear profile and a clean, monochrome finish.'},
   tee:{name:'STREET TEE',price:62,priceLabel:'$62',image:'https://cdn.3dassets.dev/assets/35447/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/35447/v1/model.glb',desc:'Heavy cotton tee cut for an easy straight fit. Minimal exterior treatment keeps the silhouette doing the work.'},
   long:{name:'NIGHT LONG SLEEVE',price:0,priceLabel:'TBD',image:'https://cdn.3dassets.dev/assets/35450/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/35450/v1/model.glb',desc:'A dark long-sleeve field layer designed to sit cleanly under outerwear or stand alone.'},
@@ -13,6 +14,7 @@ const productData={
 
 const stageHost=document.getElementById('stageCanvas');
 const loading=document.getElementById('stageLoading');
+if(loading){setTimeout(()=>loading.classList.add('hide'),250);}
 const stageProduct=document.getElementById('stageProduct');
 const overlay=document.getElementById('overlay');
 const panel=document.getElementById('productPanel');
@@ -87,17 +89,50 @@ function renderBag(){
   const total=bag.reduce((n,x)=>n+x.price,0);subtotal.textContent='$'+total+' CAD';
 }
 
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-renderer.setSize(stageHost.clientWidth,stageHost.clientHeight);
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.05;
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.domElement.style.width='100%';renderer.domElement.style.height='100%';
-stageHost.appendChild(renderer.domElement);
+let renderer=null;
+function initFallbackStage(){
+  stageHost.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;perspective:1100px';
+  const img=document.createElement('img');
+  img.src=productData[activeKey].image;
+  img.alt=productData[activeKey].name;
+  img.style.cssText='width:58%;max-width:430px;max-height:72%;object-fit:contain;filter:grayscale(1) brightness(.8) contrast(1.18);transform-style:preserve-3d;transition:transform .18s ease-out,filter .25s;box-shadow:0 32px 90px rgba(0,0,0,.45)';
+  wrap.appendChild(img);stageHost.appendChild(wrap);
+  let down=false,lastX=0,rotY=-8,rotX=2;
+  const apply=()=>img.style.transform='rotateX('+rotX+'deg) rotateY('+rotY+'deg) translateZ(18px)';
+  apply();
+  wrap.addEventListener('pointerdown',e=>{down=true;lastX=e.clientX;wrap.setPointerCapture?.(e.pointerId)});
+  wrap.addEventListener('pointermove',e=>{
+    if(down){rotY+=(e.clientX-lastX)*.18;lastX=e.clientX;apply();}
+    else{
+      const r=wrap.getBoundingClientRect(),nx=(e.clientX-r.left)/r.width-.5,ny=(e.clientY-r.top)/r.height-.5;
+      rotY=nx*12;rotX=-ny*7;apply();
+    }
+  });
+  wrap.addEventListener('pointerup',e=>{down=false;wrap.releasePointerCapture?.(e.pointerId)});
+  window.__GK_FALLBACK_IMG__=img;
+  if(loading)loading.classList.add('hide');
+}
+try{
+  const probe=document.createElement('canvas');
+  if(!probe.getContext('webgl2')) throw new Error('WebGL2 unavailable');
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  renderer.setSize(stageHost.clientWidth,stageHost.clientHeight);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.domElement.style.width='100%';renderer.domElement.style.height='100%';
+  stageHost.appendChild(renderer.domElement);
+}catch(err){
+  console.warn('Guardian K9 3D renderer fallback',err);
+  initFallbackStage();
+}
 
+if(renderer){
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x090909);
 scene.fog=new THREE.FogExp2(0x090909,.055);
@@ -163,7 +198,7 @@ async function getModel(key){
 }
 async function setActiveProduct(key,force=false){
   if(!productData[key]||(!force&&key===activeKey))return;
-  activeKey=key;stageProduct.textContent=productData[key].name;
+  activeKey=key;stageProduct.textContent=productData[key].name;if(window.__GK_FALLBACK_IMG__)window.__GK_FALLBACK_IMG__.src=productData[key].image;
   if(!productData[key].model)return;
   try{
     const next=await getModel(key);
@@ -198,4 +233,7 @@ new ResizeObserver(resize).observe(stageHost);
 
 animate();
 setTimeout(()=>loading.classList.add('hide'),650);
-Promise.allSettled([loadStore(),setActiveProduct('hoodie',true)]).then(()=>setTimeout(()=>loading.classList.add('hide'),200));
+Promise.allSettled([loadStore(),setActiveProduct('hoodie',true)]).then(()=>setTimeout(()=>loading?.classList.add('hide'),200));
+}else{
+  stageProduct.textContent=productData[activeKey].name;
+}
