@@ -1,47 +1,201 @@
-
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-const app=document.getElementById('app'),hoverLabel=document.getElementById('hoverLabel'),loading=document.getElementById('loading'),hint=document.getElementById('hint'),focusBadge=document.getElementById('focusBadge');
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;app.prepend(renderer.domElement);
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x050505);scene.fog=new THREE.FogExp2(0x050505,.045);
-const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.05,100);camera.position.set(0,2.2,7.4);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.35,0);controls.enableDamping=true;controls.dampingFactor=.055;controls.enablePan=false;controls.minDistance=2.8;controls.maxDistance=9;controls.minPolarAngle=Math.PI*.28;controls.maxPolarAngle=Math.PI*.62;controls.rotateSpeed=.35;controls.zoomSpeed=.55;
-scene.add(new THREE.HemisphereLight(0x9ab6ff,0x0a0a0a,.42));
-const key=new THREE.SpotLight(0xffffff,85,18,Math.PI/8,.65,1.4);key.position.set(1.5,6,5);key.target.position.set(0,1.2,0);key.castShadow=true;scene.add(key,key.target);
-const rim=new THREE.SpotLight(0x4169ff,48,16,Math.PI/7,.7,1.5);rim.position.set(-5,4,-2);rim.target.position.set(0,1,0);scene.add(rim,rim.target);
-const graffitiLight=new THREE.PointLight(0xff341c,16,6,2);graffitiLight.position.set(4,2,-1);scene.add(graffitiLight);
-const loader=new GLTFLoader(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2(),smoothedPointer=new THREE.Vector2(),clock=new THREE.Clock();
-const products=new Map();let hoverProduct=null,selectedProduct=null,mode='EXPLORE',dragging=false,dragX=0,targetRotY=0;let targetCamPos=camera.position.clone(),targetCamLook=controls.target.clone();
-const blackMat=new THREE.MeshStandardMaterial({color:0x070707,roughness:.76,metalness:.02}),blackMat2=new THREE.MeshStandardMaterial({color:0x111111,roughness:.68,metalness:.03});
-function makeGraffitiTexture(text,colors){const c=document.createElement('canvas');c.width=1024;c.height=512;const x=c.getContext('2d');x.fillStyle='#111';x.fillRect(0,0,c.width,c.height);x.globalAlpha=.25;for(let i=0;i<90;i++){x.strokeStyle=colors[i%colors.length];x.lineWidth=2+Math.random()*14;x.beginPath();x.moveTo(Math.random()*c.width,Math.random()*c.height);x.lineTo(Math.random()*c.width,Math.random()*c.height);x.stroke()}x.globalAlpha=.92;x.font='900 150px Arial Black,Arial';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#f2f2f2';x.strokeStyle='#000';x.lineWidth=18;x.strokeText(text,c.width/2,c.height/2);x.fillText(text,c.width/2,c.height/2);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
-const graffitiMat=new THREE.MeshBasicMaterial({map:makeGraffitiTexture('GUARDIAN K9',['#ff3b1f','#3d5afe','#ffcf33','#00c47b']),transparent:true,opacity:.84,side:THREE.DoubleSide});const graffiti=new THREE.Mesh(new THREE.PlaneGeometry(5.6,2.6),graffitiMat);graffiti.position.set(0,2.0,-4.2);scene.add(graffiti);
-function overrideDarkMaterials(root){root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const name=(o.name||'').toLowerCase();if(/glass|mirror/.test(name))return;if(o.material){const m=Array.isArray(o.material)?o.material:[o.material];m.forEach(mat=>{if(mat.color){mat.color.multiplyScalar(.42);mat.roughness=Math.max(.45,(mat.roughness ?? 0.6))}})}}})}
-function normalizeAndCenter(obj,maxSize=1.25){const box=new THREE.Box3().setFromObject(obj),size=box.getSize(new THREE.Vector3());const scale=maxSize/Math.max(size.x,size.y,size.z);obj.scale.multiplyScalar(scale);const box2=new THREE.Box3().setFromObject(obj),center2=box2.getCenter(new THREE.Vector3());obj.position.sub(center2)}
-async function loadEnvironment(){const gltf=await loader.loadAsync('https://cdn.3dassets.dev/assets/25413/v1/model.glb');const env=gltf.scene;overrideDarkMaterials(env);env.scale.setScalar(.72);env.position.set(0,0,-1.0);scene.add(env)}
-const productDefs=[
-{id:'hoodie',label:'01 / GUARDIAN FIELD HOODIE',url:'https://cdn.3dassets.dev/assets/35452/v1/model.glb',pos:[-2.2,1.35,-.7]},
-{id:'zip-hoodie',label:'02 / GUARDIAN ZIP HOODIE',url:'https://cdn.3dassets.dev/assets/35452/v1/model.glb',pos:[-1.05,1.4,.45],zipper:true},
-{id:'tshirt',label:'03 / GUARDIAN T-SHIRT',url:'https://cdn.3dassets.dev/assets/35447/v1/model.glb',pos:[.55,1.35,.65]},
-{id:'long-sleeve',label:'04 / GUARDIAN LONG SLEEVE',url:'https://cdn.3dassets.dev/assets/35450/v1/model.glb',pos:[1.9,1.42,-.15]},
-{id:'cap',label:'05 / GUARDIAN CAP',url:'https://cdn.3dassets.dev/assets/33769/v1/model.glb',pos:[2.6,.85,-1.9],cap:true},
-{id:'stickers',label:'06 / GUARDIAN STICKERS',url:'https://cdn.3dassets.dev/assets/2626/v1/model.glb',pos:[.15,.55,-1.95],sticker:true}
-];
-async function loadProduct(def){const gltf=await loader.loadAsync(def.url),group=new THREE.Group(),model=gltf.scene;normalizeAndCenter(model, def.cap ? 0.8 : (def.sticker ? 0.65 : 1.32));model.traverse(o=>{if(o.isMesh){o.material=(Math.random()>.5?blackMat:blackMat2).clone();o.material.side=THREE.DoubleSide;o.castShadow=true;o.receiveShadow=true;o.userData.productId=def.id}});if(def.zipper){const z=new THREE.Mesh(new THREE.BoxGeometry(.025,.78,.018),new THREE.MeshStandardMaterial({color:0x6a6a6a,roughness:.4,metalness:.55}));z.position.set(0,-.06,.17);group.add(z)}group.add(model);group.position.fromArray(def.pos);group.userData.productId=def.id;group.userData.label=def.label;group.userData.homePos=group.position.clone();group.userData.homeRot=group.rotation.clone();group.userData.homeScale=group.scale.clone();scene.add(group);products.set(def.id,group)}
-function interactiveMeshes(){const out=[];products.forEach(g=>g.traverse(o=>{if(o.isMesh)out.push(o)}));return out}
-function selectProduct(id){const g=products.get(id);if(!g||mode!=='EXPLORE')return;selectedProduct=g;mode='FOCUSING';controls.enabled=false;hoverLabel.classList.remove('show');hint.style.opacity='0';focusBadge.classList.add('show');const wp=new THREE.Vector3();g.getWorldPosition(wp);targetCamLook.copy(wp);targetCamPos.copy(wp).add(new THREE.Vector3(0,.25,2.25));targetRotY=g.rotation.y;window.parent?.postMessage({type:'GUARDIAN_PRODUCT_SELECT',productId:id},'*');setTimeout(()=>{if(mode==='FOCUSING')mode='FOCUSED'},850)}
-function exitFocus(){if(!selectedProduct)return;mode='RETURNING';targetCamPos.set(0,2.2,7.4);targetCamLook.set(0,1.35,0);selectedProduct.position.copy(selectedProduct.userData.homePos);selectedProduct.scale.copy(selectedProduct.userData.homeScale);targetRotY=selectedProduct.userData.homeRot.y;setTimeout(()=>{if(selectedProduct)selectedProduct.rotation.copy(selectedProduct.userData.homeRot);selectedProduct=null;mode='EXPLORE';controls.enabled=true;hint.style.opacity='1';focusBadge.classList.remove('show')},900)}
-renderer.domElement.addEventListener('pointermove',e=>{const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;if(mode==='FOCUSED'&&dragging&&selectedProduct){const dx=e.clientX-dragX;dragX=e.clientX;targetRotY+=dx*.009;return}if(mode!=='EXPLORE')return;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(interactiveMeshes(),false)[0],id=hit?.object?.userData?.productId,next=id?products.get(id):null;if(next!==hoverProduct){if(hoverProduct)hoverProduct.userData.hover=false;hoverProduct=next;if(hoverProduct){hoverProduct.userData.hover=true;hoverLabel.textContent=hoverProduct.userData.label;hoverLabel.classList.add('show');renderer.domElement.style.cursor='pointer';window.parent?.postMessage({type:'GUARDIAN_PRODUCT_HOVER',productId:id},'*')}else{hoverLabel.classList.remove('show');renderer.domElement.style.cursor='default'}}});
-renderer.domElement.addEventListener('pointerdown',e=>{if(mode==='FOCUSED'){dragging=true;dragX=e.clientX;renderer.domElement.setPointerCapture?.(e.pointerId);return}if(mode==='EXPLORE'&&hoverProduct)selectProduct(hoverProduct.userData.productId)});renderer.domElement.addEventListener('pointerup',e=>{dragging=false;renderer.domElement.releasePointerCapture?.(e.pointerId)});
-renderer.domElement.addEventListener('wheel',e=>{if(mode==='FOCUSED'){e.preventDefault();const dir=new THREE.Vector3().subVectors(camera.position,controls.target).normalize(),d=camera.position.distanceTo(controls.target),nd=THREE.MathUtils.clamp(d+Math.sign(e.deltaY)*.18,1.4,3.4);targetCamPos.copy(targetCamLook).add(dir.multiplyScalar(nd))}},{passive:false});
-window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='GUARDIAN_RETURN_HOME')exitFocus();if(d.type==='GUARDIAN_PRODUCT_VIEW'&&selectedProduct&&(d.view==='front'||d.view==='back'))targetRotY=selectedProduct.userData.homeRot.y+(d.view==='back'?Math.PI:0)});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&selectedProduct)exitFocus()});
-function animate(){requestAnimationFrame(animate);clock.getDelta();smoothedPointer.lerp(pointer,.035);products.forEach(g=>{const hovered=g===hoverProduct&&mode==='EXPLORE',s=hovered?1.045:1;g.scale.lerp(new THREE.Vector3(s,s,s),.1);if(mode==='EXPLORE'){const homeY=g.userData.homePos.y;g.position.y=THREE.MathUtils.lerp(g.position.y,homeY+(hovered ? 0.045 : 0),.1);const hr=g.userData.homeRot.y+(hovered?smoothedPointer.x*.08:0);g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,hr,.08)}});if(mode==='EXPLORE'){targetCamPos.set(smoothedPointer.x*.18,2.2+smoothedPointer.y*.10,7.4);targetCamLook.set(smoothedPointer.x*.09,1.35+smoothedPointer.y*.04,0)}camera.position.lerp(targetCamPos, mode==='EXPLORE' ? 0.025 : 0.055);controls.target.lerp(targetCamLook, mode==='EXPLORE' ? 0.025 : 0.06);if(selectedProduct){selectedProduct.rotation.y=THREE.MathUtils.lerp(selectedProduct.rotation.y,targetRotY,.12);if(mode==='FOCUSING'||mode==='FOCUSED'){selectedProduct.position.y=THREE.MathUtils.lerp(selectedProduct.position.y,1.35,.06);selectedProduct.scale.lerp(new THREE.Vector3(1.35,1.35,1.35),.07)}}controls.update();renderer.render(scene,camera)}
-animate();
-loading.textContent='FIELD SUPPLY READY';
-setTimeout(()=>loading.classList.add('hide'),700);
-Promise.allSettled([loadEnvironment(),...productDefs.map(loadProduct)]).then(results=>{
-  const failed=results.filter(r=>r.status==='rejected');
-  failed.forEach(r=>console.error(r.reason));
-  if(failed.length) console.warn(failed.length+' showroom assets failed to load');
+
+const productData={
+  hoodie:{name:'FIELD HOODIE',price:148,priceLabel:'$148',image:'https://cdn.3dassets.dev/assets/27162/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/27162/v1/model.glb',desc:'Heavyweight pullover hoodie with a field-first silhouette, restrained branding and a substantial hand feel.'},
+  zip:{name:'OPERATOR ZIP',price:168,priceLabel:'$168',image:'https://cdn.3dassets.dev/assets/27161/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/27161/v1/model.glb',desc:'Full-zip technical layer with a hooded outerwear profile and a clean, monochrome finish.'},
+  tee:{name:'STREET TEE',price:62,priceLabel:'$62',image:'https://cdn.3dassets.dev/assets/35447/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/35447/v1/model.glb',desc:'Heavy cotton tee cut for an easy straight fit. Minimal exterior treatment keeps the silhouette doing the work.'},
+  long:{name:'NIGHT LONG SLEEVE',price:0,priceLabel:'TBD',image:'https://cdn.3dassets.dev/assets/35450/v1/poster.webp',model:'https://cdn.3dassets.dev/assets/35450/v1/model.glb',desc:'A dark long-sleeve field layer designed to sit cleanly under outerwear or stand alone.'},
+  cap:{name:'HANDLER CAP',price:0,priceLabel:'TBD',image:null,model:null,desc:'Structured black cap concept reserved for the Guardian K9 handler line.'},
+  stickers:{name:'FIELD MARKS PACK',price:0,priceLabel:'TBD',image:null,model:null,desc:'A compact Guardian K9 marks and decal pack for cases, bottles, crates and field gear.'}
+};
+
+const stageHost=document.getElementById('stageCanvas');
+const loading=document.getElementById('stageLoading');
+const stageProduct=document.getElementById('stageProduct');
+const overlay=document.getElementById('overlay');
+const panel=document.getElementById('productPanel');
+const panelImage=document.getElementById('panelImage');
+const panelName=document.getElementById('panelName');
+const panelPrice=document.getElementById('panelPrice');
+const panelDesc=document.getElementById('panelDesc');
+const panelCode=document.getElementById('panelCode');
+const addBtn=document.getElementById('addBtn');
+const bagBtn=document.getElementById('bagBtn');
+const bagDrawer=document.getElementById('bagDrawer');
+const bagItems=document.getElementById('bagItems');
+const bagCount=document.getElementById('bagCount');
+const subtotal=document.getElementById('subtotal');
+
+let activeKey='hoodie',activeProduct=null,currentProductGroup=null;
+let bag=[],selectedSize='M';
+
+function makeFallbackArt(key){
+  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1400;
+  const c=canvas.getContext('2d');
+  const g=c.createLinearGradient(0,0,1200,1400);g.addColorStop(0,'#232323');g.addColorStop(1,'#090909');
+  c.fillStyle=g;c.fillRect(0,0,1200,1400);
+  c.strokeStyle='rgba(255,255,255,.08)';c.lineWidth=2;
+  for(let i=-500;i<1700;i+=85){c.beginPath();c.moveTo(i,0);c.lineTo(i-600,1400);c.stroke()}
+  c.fillStyle='#2b2b2b';c.font='900 310px Arial';c.textAlign='center';c.fillText('GK',600,780);
+  c.fillStyle='#8c8c88';c.font='700 34px Arial';c.letterSpacing='8px';c.fillText(key==='cap'?'HANDLER CAP':'FIELD MARKS',600,930);
+  return canvas.toDataURL('image/jpeg',.88);
+}
+productData.cap.image=makeFallbackArt('cap');
+productData.stickers.image=makeFallbackArt('stickers');
+
+document.querySelectorAll('.card').forEach(card=>{
+  const key=card.dataset.product;
+  if((key==='cap'||key==='stickers')){
+    const img=card.querySelector('img');
+    img.src=productData[key].image;
+    img.style.filter='none';
+  }
+  card.addEventListener('mouseenter',()=>setActiveProduct(key,false));
+  card.addEventListener('click',()=>openProduct(key));
 });
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight)});
+document.querySelectorAll('.size').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.size').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedSize=btn.textContent;
+}));
+document.getElementById('productClose').onclick=closePanels;
+document.getElementById('bagClose').onclick=closePanels;
+overlay.onclick=closePanels;
+bagBtn.onclick=()=>{overlay.classList.add('show');bagDrawer.classList.add('show')};
+document.getElementById('viewStage').onclick=()=>document.getElementById('showroom').scrollIntoView({behavior:'smooth'});
+addBtn.onclick=()=>{
+  const p=productData[activeProduct||activeKey];
+  bag.push({key:activeProduct||activeKey,size:selectedSize,price:p.price});
+  renderBag(); closePanels(); bagDrawer.classList.add('show'); overlay.classList.add('show');
+};
+
+function openProduct(key){
+  activeProduct=key; const p=productData[key]; setActiveProduct(key,true);
+  panelName.textContent=p.name; panelPrice.textContent=p.priceLabel+(p.price?' CAD':'');
+  panelDesc.textContent=p.desc;panelImage.src=p.image;panelCode.textContent='DROP 01 / GUARDIAN K9';
+  overlay.classList.add('show');panel.classList.add('show');
+  window.parent?.postMessage({type:'GUARDIAN_PRODUCT_SELECT',productId:key==='zip'?'zip-hoodie':key==='tee'?'tshirt':key==='long'?'long-sleeve':key},'*');
+}
+function closePanels(){overlay.classList.remove('show');panel.classList.remove('show');bagDrawer.classList.remove('show');activeProduct=null}
+function renderBag(){
+  bagCount.textContent=bag.length;
+  if(!bag.length){bagItems.innerHTML='<div class="bag-empty">Your bag is empty.</div>';subtotal.textContent='$0';return}
+  bagItems.innerHTML=bag.map((item,i)=>{
+    const p=productData[item.key];
+    return '<div class="bag-item"><img src="'+p.image+'"><div><strong>'+p.name+'</strong><small>Size '+item.size+'</small></div><strong>'+(p.price?'$'+p.price:'TBD')+'</strong></div>'
+  }).join('');
+  const total=bag.reduce((n,x)=>n+x.price,0);subtotal.textContent='$'+total+' CAD';
+}
+
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setSize(stageHost.clientWidth,stageHost.clientHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.domElement.style.width='100%';renderer.domElement.style.height='100%';
+stageHost.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x090909);
+scene.fog=new THREE.FogExp2(0x090909,.055);
+
+const camera=new THREE.PerspectiveCamera(34,stageHost.clientWidth/stageHost.clientHeight,.05,80);
+camera.position.set(0,2.0,7.5);
+
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=.06;controls.enablePan=false;
+controls.target.set(0,1.15,0);controls.minDistance=3;controls.maxDistance=9;
+controls.minPolarAngle=Math.PI*.30;controls.maxPolarAngle=Math.PI*.58;controls.rotateSpeed=.38;controls.zoomSpeed=.5;
+
+scene.add(new THREE.HemisphereLight(0xb8c5d8,0x101010,.72));
+const key=new THREE.SpotLight(0xffffff,78,18,Math.PI/5,.55,1.5);key.position.set(2.5,6,4);key.target.position.set(0,1,0);key.castShadow=true;scene.add(key,key.target);
+const fill=new THREE.SpotLight(0xb7c8ff,32,16,Math.PI/4,.7,1.6);fill.position.set(-4,3.5,2);fill.target.position.set(0,1,-1);scene.add(fill,fill.target);
+const warm=new THREE.PointLight(0xff4a22,12,7,2);warm.position.set(4,1.8,-3);scene.add(warm);
+
+const floor=new THREE.Mesh(new THREE.CircleGeometry(2.3,64),new THREE.MeshStandardMaterial({color:0x101010,roughness:.42,metalness:.25}));
+floor.rotation.x=-Math.PI/2;floor.position.y=.01;floor.receiveShadow=true;scene.add(floor);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.75,.008,8,96),new THREE.MeshBasicMaterial({color:0x585858,transparent:true,opacity:.55}));
+ring.rotation.x=Math.PI/2;ring.position.y=.018;scene.add(ring);
+
+const loader=new GLTFLoader();
+const cache=new Map();
+const stageGroup=new THREE.Group();scene.add(stageGroup);
+
+function darkenObject(root,amount=.32){
+  root.traverse(o=>{
+    if(!o.isMesh)return;
+    o.castShadow=true;o.receiveShadow=true;
+    const mats=Array.isArray(o.material)?o.material:[o.material];
+    o.material=mats.map(m=>{
+      const n=m.clone();
+      if(n.color)n.color.lerp(new THREE.Color(0x080808),amount);
+      if('roughness' in n)n.roughness=Math.max(.48,n.roughness??.65);
+      if('metalness' in n)n.metalness=Math.min(.3,n.metalness??0);
+      return n;
+    });
+    if(o.material.length===1)o.material=o.material[0];
+  });
+}
+function normalize(root,target=1.8){
+  const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3());
+  const scale=target/Math.max(size.x,size.y,size.z);root.scale.multiplyScalar(scale);
+  const b2=new THREE.Box3().setFromObject(root),c=b2.getCenter(new THREE.Vector3());
+  root.position.sub(c);const b3=new THREE.Box3().setFromObject(root);root.position.y-=b3.min.y;
+}
+async function loadStore(){
+  try{
+    const gltf=await loader.loadAsync('https://cdn.3dassets.dev/assets/35480/v1/model.glb');
+    const store=gltf.scene;darkenObject(store,.12);
+    store.scale.setScalar(1.02);store.position.set(0,-.03,-2.9);
+    store.traverse(o=>{if(o.isMesh){const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m.color)m.color.multiplyScalar(.55)})}});
+    scene.add(store);
+  }catch(e){console.warn('Store scene failed',e)}
+}
+async function getModel(key){
+  if(cache.has(key))return cache.get(key).clone(true);
+  const p=productData[key];if(!p.model)return null;
+  const gltf=await loader.loadAsync(p.model);
+  const root=gltf.scene;darkenObject(root,.55);normalize(root,key==='tee'?1.45:1.75);
+  cache.set(key,root);return root.clone(true);
+}
+async function setActiveProduct(key,force=false){
+  if(!productData[key]||(!force&&key===activeKey))return;
+  activeKey=key;stageProduct.textContent=productData[key].name;
+  if(!productData[key].model)return;
+  try{
+    const next=await getModel(key);
+    if(currentProductGroup)stageGroup.remove(currentProductGroup);
+    currentProductGroup=next;currentProductGroup.position.set(0,.03,.55);currentProductGroup.rotation.y=-.18;
+    stageGroup.add(currentProductGroup);
+  }catch(e){console.warn('Product model failed',key,e)}
+}
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='GUARDIAN_PRODUCT_VIEW'&&currentProductGroup)currentProductGroup.rotation.y=d.view==='back'?Math.PI:0;
+  if(d.type==='GUARDIAN_RETURN_HOME'){closePanels();setActiveProduct('hoodie',true)}
+});
+
+let mx=0,my=0,tmx=0,tmy=0;
+stageHost.addEventListener('pointermove',e=>{const r=stageHost.getBoundingClientRect();tmx=((e.clientX-r.left)/r.width-.5)*2;tmy=((e.clientY-r.top)/r.height-.5)*2});
+function animate(){
+  requestAnimationFrame(animate);
+  mx+=(tmx-mx)*.035;my+=(tmy-my)*.035;
+  if(currentProductGroup){
+    currentProductGroup.rotation.y+=.0017;
+    currentProductGroup.position.y=.03+Math.sin(performance.now()*.0012)*.012;
+  }
+  if(!controls.enabled){camera.position.x+=((mx*.18)-camera.position.x)*.02}
+  controls.update();renderer.render(scene,camera);
+}
+function resize(){
+  const w=stageHost.clientWidth,h=stageHost.clientHeight;if(!w||!h)return;
+  camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);
+}
+new ResizeObserver(resize).observe(stageHost);
+
+animate();
+setTimeout(()=>loading.classList.add('hide'),650);
+Promise.allSettled([loadStore(),setActiveProduct('hoodie',true)]).then(()=>setTimeout(()=>loading.classList.add('hide'),200));
