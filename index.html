@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Guardian K9 — Field Supply 3D Showroom</title>
+<style>
+  :root{--bg:#050505;--fg:#f5f5f5;--muted:#9a9a9a}
+  *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+  #app{position:relative;width:100%;height:100%;background:#050505} canvas{display:block;width:100%;height:100%;touch-action:none}
+  .hud{position:absolute;inset:0;pointer-events:none;z-index:10}.brand{position:absolute;left:28px;top:24px;letter-spacing:.18em;text-transform:uppercase}
+  .brand .kicker{font-size:11px;color:#aaa}.brand .title{font-size:clamp(34px,5vw,72px);font-weight:900;line-height:.86;letter-spacing:-.05em;margin-top:8px}
+  .hint{position:absolute;left:28px;bottom:24px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#aaa;line-height:1.5}
+  .hoverLabel{position:absolute;right:28px;bottom:24px;padding:10px 14px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);backdrop-filter:blur(10px);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:0;transform:translateY(8px);transition:.25s ease}
+  .hoverLabel.show{opacity:1;transform:none}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#050505;z-index:30;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#aaa;transition:opacity .5s ease}.loading.hide{opacity:0;pointer-events:none}
+  .accent{position:absolute;width:38vw;height:38vw;max-width:500px;max-height:500px;border-radius:50%;right:-10vw;top:-12vw;background:radial-gradient(circle,rgba(255,60,0,.12),transparent 68%);filter:blur(10px);pointer-events:none}
+  .focusBadge{position:absolute;top:26px;right:28px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#aaa;opacity:0;transition:.25s}.focusBadge.show{opacity:1}
+  @media (max-width:700px){.brand{left:18px;top:18px}.hint{left:18px;bottom:18px}.hoverLabel{right:18px;bottom:18px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="loading" id="loading">Loading Field Supply</div>
+  <div class="hud"><div class="accent"></div><div class="brand"><div class="kicker">Guardian K9</div><div class="title">FIELD<br/>SUPPLY</div></div><div class="focusBadge" id="focusBadge">Drag to inspect · Scroll to zoom</div><div class="hint" id="hint">Move to explore<br/>Click a product</div><div class="hoverLabel" id="hoverLabel"></div></div>
+</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
+const app=document.getElementById('app'),hoverLabel=document.getElementById('hoverLabel'),loading=document.getElementById('loading'),hint=document.getElementById('hint'),focusBadge=document.getElementById('focusBadge');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;app.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x050505);scene.fog=new THREE.FogExp2(0x050505,.045);
+const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.05,100);camera.position.set(0,2.2,7.4);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.35,0);controls.enableDamping=true;controls.dampingFactor=.055;controls.enablePan=false;controls.minDistance=2.8;controls.maxDistance=9;controls.minPolarAngle=Math.PI*.28;controls.maxPolarAngle=Math.PI*.62;controls.rotateSpeed=.35;controls.zoomSpeed=.55;
+scene.add(new THREE.HemisphereLight(0x9ab6ff,0x0a0a0a,.42));
+const key=new THREE.SpotLight(0xffffff,85,18,Math.PI/8,.65,1.4);key.position.set(1.5,6,5);key.target.position.set(0,1.2,0);key.castShadow=true;scene.add(key,key.target);
+const rim=new THREE.SpotLight(0x4169ff,48,16,Math.PI/7,.7,1.5);rim.position.set(-5,4,-2);rim.target.position.set(0,1,0);scene.add(rim,rim.target);
+const graffitiLight=new THREE.PointLight(0xff341c,16,6,2);graffitiLight.position.set(4,2,-1);scene.add(graffitiLight);
+const loader=new GLTFLoader(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2(),smoothedPointer=new THREE.Vector2(),clock=new THREE.Clock();
+const products=new Map();let hoverProduct=null,selectedProduct=null,mode='EXPLORE',dragging=false,dragX=0,targetRotY=0;let targetCamPos=camera.position.clone(),targetCamLook=controls.target.clone();
+const blackMat=new THREE.MeshStandardMaterial({color:0x070707,roughness:.76,metalness:.02}),blackMat2=new THREE.MeshStandardMaterial({color:0x111111,roughness:.68,metalness:.03});
+function makeGraffitiTexture(text,colors){const c=document.createElement('canvas');c.width=1024;c.height=512;const x=c.getContext('2d');x.fillStyle='#111';x.fillRect(0,0,c.width,c.height);x.globalAlpha=.25;for(let i=0;i<90;i++){x.strokeStyle=colors[i%colors.length];x.lineWidth=2+Math.random()*14;x.beginPath();x.moveTo(Math.random()*c.width,Math.random()*c.height);x.lineTo(Math.random()*c.width,Math.random()*c.height);x.stroke()}x.globalAlpha=.92;x.font='900 150px Arial Black,Arial';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#f2f2f2';x.strokeStyle='#000';x.lineWidth=18;x.strokeText(text,c.width/2,c.height/2);x.fillText(text,c.width/2,c.height/2);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+const graffitiMat=new THREE.MeshBasicMaterial({map:makeGraffitiTexture('GUARDIAN K9',['#ff3b1f','#3d5afe','#ffcf33','#00c47b']),transparent:true,opacity:.84,side:THREE.DoubleSide});const graffiti=new THREE.Mesh(new THREE.PlaneGeometry(5.6,2.6),graffitiMat);graffiti.position.set(0,2.0,-4.2);scene.add(graffiti);
+function overrideDarkMaterials(root){root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const name=(o.name||'').toLowerCase();if(/glass|mirror/.test(name))return;if(o.material){const m=Array.isArray(o.material)?o.material:[o.material];m.forEach(mat=>{if(mat.color){mat.color.multiplyScalar(.42);mat.roughness=Math.max(.45,mat.roughness??.6)}})}}})}
+function normalizeAndCenter(obj,maxSize=1.25){const box=new THREE.Box3().setFromObject(obj),size=box.getSize(new THREE.Vector3());const scale=maxSize/Math.max(size.x,size.y,size.z);obj.scale.multiplyScalar(scale);const box2=new THREE.Box3().setFromObject(obj),center2=box2.getCenter(new THREE.Vector3());obj.position.sub(center2)}
+async function loadEnvironment(){const gltf=await loader.loadAsync('https://cdn.3dassets.dev/assets/25413/v1/model.glb');const env=gltf.scene;overrideDarkMaterials(env);env.scale.setScalar(.72);env.position.set(0,0,-1.0);scene.add(env)}
+const productDefs=[
+{id:'hoodie',label:'01 / GUARDIAN FIELD HOODIE',url:'https://cdn.3dassets.dev/assets/35452/v1/model.glb',pos:[-2.2,1.35,-.7]},
+{id:'zip-hoodie',label:'02 / GUARDIAN ZIP HOODIE',url:'https://cdn.3dassets.dev/assets/35452/v1/model.glb',pos:[-1.05,1.4,.45],zipper:true},
+{id:'tshirt',label:'03 / GUARDIAN T-SHIRT',url:'https://cdn.3dassets.dev/assets/35447/v1/model.glb',pos:[.55,1.35,.65]},
+{id:'long-sleeve',label:'04 / GUARDIAN LONG SLEEVE',url:'https://cdn.3dassets.dev/assets/35450/v1/model.glb',pos:[1.9,1.42,-.15]},
+{id:'cap',label:'05 / GUARDIAN CAP',url:'https://cdn.3dassets.dev/assets/33769/v1/model.glb',pos:[2.6,.85,-1.9],cap:true},
+{id:'stickers',label:'06 / GUARDIAN STICKERS',url:'https://cdn.3dassets.dev/assets/2626/v1/model.glb',pos:[.15,.55,-1.95],sticker:true}
+];
+async function loadProduct(def){const gltf=await loader.loadAsync(def.url),group=new THREE.Group(),model=gltf.scene;normalizeAndCenter(model,def.cap?.8:def.sticker?.65:1.32);model.traverse(o=>{if(o.isMesh){o.material=(Math.random()>.5?blackMat:blackMat2).clone();o.material.side=THREE.DoubleSide;o.castShadow=true;o.receiveShadow=true;o.userData.productId=def.id}});if(def.zipper){const z=new THREE.Mesh(new THREE.BoxGeometry(.025,.78,.018),new THREE.MeshStandardMaterial({color:0x6a6a6a,roughness:.4,metalness:.55}));z.position.set(0,-.06,.17);group.add(z)}group.add(model);group.position.fromArray(def.pos);group.userData.productId=def.id;group.userData.label=def.label;group.userData.homePos=group.position.clone();group.userData.homeRot=group.rotation.clone();group.userData.homeScale=group.scale.clone();scene.add(group);products.set(def.id,group)}
+function interactiveMeshes(){const out=[];products.forEach(g=>g.traverse(o=>{if(o.isMesh)out.push(o)}));return out}
+function selectProduct(id){const g=products.get(id);if(!g||mode!=='EXPLORE')return;selectedProduct=g;mode='FOCUSING';controls.enabled=false;hoverLabel.classList.remove('show');hint.style.opacity='0';focusBadge.classList.add('show');const wp=new THREE.Vector3();g.getWorldPosition(wp);targetCamLook.copy(wp);targetCamPos.copy(wp).add(new THREE.Vector3(0,.25,2.25));targetRotY=g.rotation.y;window.parent?.postMessage({type:'GUARDIAN_PRODUCT_SELECT',productId:id},'*');setTimeout(()=>{if(mode==='FOCUSING')mode='FOCUSED'},850)}
+function exitFocus(){if(!selectedProduct)return;mode='RETURNING';targetCamPos.set(0,2.2,7.4);targetCamLook.set(0,1.35,0);selectedProduct.position.copy(selectedProduct.userData.homePos);selectedProduct.scale.copy(selectedProduct.userData.homeScale);targetRotY=selectedProduct.userData.homeRot.y;setTimeout(()=>{if(selectedProduct)selectedProduct.rotation.copy(selectedProduct.userData.homeRot);selectedProduct=null;mode='EXPLORE';controls.enabled=true;hint.style.opacity='1';focusBadge.classList.remove('show')},900)}
+renderer.domElement.addEventListener('pointermove',e=>{const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;if(mode==='FOCUSED'&&dragging&&selectedProduct){const dx=e.clientX-dragX;dragX=e.clientX;targetRotY+=dx*.009;return}if(mode!=='EXPLORE')return;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(interactiveMeshes(),false)[0],id=hit?.object?.userData?.productId,next=id?products.get(id):null;if(next!==hoverProduct){if(hoverProduct)hoverProduct.userData.hover=false;hoverProduct=next;if(hoverProduct){hoverProduct.userData.hover=true;hoverLabel.textContent=hoverProduct.userData.label;hoverLabel.classList.add('show');renderer.domElement.style.cursor='pointer';window.parent?.postMessage({type:'GUARDIAN_PRODUCT_HOVER',productId:id},'*')}else{hoverLabel.classList.remove('show');renderer.domElement.style.cursor='default'}}});
+renderer.domElement.addEventListener('pointerdown',e=>{if(mode==='FOCUSED'){dragging=true;dragX=e.clientX;renderer.domElement.setPointerCapture?.(e.pointerId);return}if(mode==='EXPLORE'&&hoverProduct)selectProduct(hoverProduct.userData.productId)});renderer.domElement.addEventListener('pointerup',e=>{dragging=false;renderer.domElement.releasePointerCapture?.(e.pointerId)});
+renderer.domElement.addEventListener('wheel',e=>{if(mode==='FOCUSED'){e.preventDefault();const dir=new THREE.Vector3().subVectors(camera.position,controls.target).normalize(),d=camera.position.distanceTo(controls.target),nd=THREE.MathUtils.clamp(d+Math.sign(e.deltaY)*.18,1.4,3.4);targetCamPos.copy(targetCamLook).add(dir.multiplyScalar(nd))}},{passive:false});
+window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='GUARDIAN_RETURN_HOME')exitFocus();if(d.type==='GUARDIAN_PRODUCT_VIEW'&&selectedProduct&&(d.view==='front'||d.view==='back'))targetRotY=selectedProduct.userData.homeRot.y+(d.view==='back'?Math.PI:0)});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&selectedProduct)exitFocus()});
+function animate(){requestAnimationFrame(animate);clock.getDelta();smoothedPointer.lerp(pointer,.035);products.forEach(g=>{const hovered=g===hoverProduct&&mode==='EXPLORE',s=hovered?1.045:1;g.scale.lerp(new THREE.Vector3(s,s,s),.1);if(mode==='EXPLORE'){const homeY=g.userData.homePos.y;g.position.y=THREE.MathUtils.lerp(g.position.y,homeY+(hovered?.045:0),.1);const hr=g.userData.homeRot.y+(hovered?smoothedPointer.x*.08:0);g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,hr,.08)}});if(mode==='EXPLORE'){targetCamPos.set(smoothedPointer.x*.18,2.2+smoothedPointer.y*.10,7.4);targetCamLook.set(smoothedPointer.x*.09,1.35+smoothedPointer.y*.04,0)}camera.position.lerp(targetCamPos,mode==='EXPLORE'?.025:.055);controls.target.lerp(targetCamLook,mode==='EXPLORE'?.025:.06);if(selectedProduct){selectedProduct.rotation.y=THREE.MathUtils.lerp(selectedProduct.rotation.y,targetRotY,.12);if(mode==='FOCUSING'||mode==='FOCUSED'){selectedProduct.position.y=THREE.MathUtils.lerp(selectedProduct.position.y,1.35,.06);selectedProduct.scale.lerp(new THREE.Vector3(1.35,1.35,1.35),.07)}}controls.update();renderer.render(scene,camera)}
+Promise.all([loadEnvironment(),...productDefs.map(loadProduct)]).then(()=>{loading.textContent='FIELD SUPPLY READY';setTimeout(()=>loading.classList.add('hide'),450);animate()}).catch(err=>{console.error(err);loading.textContent='Showroom failed to load'});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>
