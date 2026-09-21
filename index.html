@@ -3,73 +3,133 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080808">
+<meta name="theme-color" content="#070707">
 <title>Guardian K9 — Field Supply</title>
 <style>
 :root{
-  --bg:#070707;--panel:#101010;--panel2:#171717;--line:rgba(255,255,255,.12);
-  --text:#f5f5f2;--muted:#9b9b95;--accent:#f04a24;--max:1440px;
+  --bg:#060606;--ink:#f4f4ef;--muted:#969691;--line:rgba(255,255,255,.12);
+  --soft:rgba(255,255,255,.06);--panel:#0d0d0d;--accent:#ef4b2f;--max:1480px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif;overflow-x:hidden}
-button,input{font:inherit}
-a{color:inherit;text-decoration:none}
-.announcement{height:34px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#b9b9b4;background:#0b0b0b}
-.site-header{position:sticky;top:0;z-index:100;height:70px;background:rgba(7,7,7,.86);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-.nav{max-width:var(--max);height:100%;margin:auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:24px}
-.logo{font-weight:900;letter-spacing:.13em;font-size:17px;white-space:nowrap}.logo span{font-weight:400;color:#888;margin-left:8px}
-.navlinks{display:flex;gap:28px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#c6c6c1}.navlinks a:hover{color:white}
-.actions{display:flex;align-items:center;gap:10px}.iconbtn{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;background:#0c0c0c;color:white;display:grid;place-items:center;cursor:pointer}.bagcount{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:white;color:black;font-size:10px;font-weight:800;margin-left:3px}
-.hero{max-width:var(--max);min-height:calc(100svh - 104px);margin:auto;padding:42px 28px 34px;display:grid;grid-template-columns:.85fr 1.35fr;gap:28px}
-.hero-copy{display:flex;flex-direction:column;justify-content:center;padding:44px 1vw 44px 0}
-.eyebrow{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#9e9e99;margin-bottom:20px}
-.hero h1{margin:0;font-size:clamp(58px,8.4vw,132px);line-height:.78;letter-spacing:-.065em;text-transform:uppercase;font-weight:950}
-.hero h1 em{font-style:normal;color:#3a3a38;-webkit-text-stroke:1px rgba(255,255,255,.28)}
-.hero-copy p{max-width:550px;font-size:14px;line-height:1.7;color:#aaa9a3;margin:28px 0 30px}
-.cta-row{display:flex;gap:12px;flex-wrap:wrap}.btn{height:48px;padding:0 22px;border:1px solid var(--line);background:white;color:#090909;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}.btn.ghost{background:transparent;color:white}.btn:hover{transform:translateY(-1px)}
-.stage{position:relative;min-height:680px;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:linear-gradient(rgba(5,5,5,.34),rgba(5,5,5,.64)),url('https://cdn.3dassets.dev/assets/35480/v1/poster.webp') center/cover no-repeat}
-#stageCanvas{position:absolute;inset:0}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,Helvetica,sans-serif;overflow-x:hidden}
+button,input{font:inherit} button{color:inherit} a{color:inherit;text-decoration:none}
+img{display:block}
+::selection{background:#fff;color:#000}
+
+.announcement{height:34px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:#090909;color:#aaa;font-size:9px;letter-spacing:.23em;text-transform:uppercase}
+.site-header{position:sticky;top:0;z-index:80;height:72px;border-bottom:1px solid var(--line);background:rgba(6,6,6,.76);backdrop-filter:blur(18px) saturate(1.2)}
+.nav{max-width:var(--max);height:100%;margin:auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:28px}
+.logo{font-size:16px;letter-spacing:.16em;font-weight:900;white-space:nowrap}.logo span{font-weight:400;color:#7f7f7a;margin-left:10px}
+.navlinks{display:flex;gap:30px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aaa}.navlinks a{transition:.2s}.navlinks a:hover{color:#fff}
+.actions{display:flex;gap:10px}.iconbtn{height:42px;min-width:42px;border:1px solid var(--line);border-radius:999px;background:#0c0c0c;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;padding:0 12px;font-size:12px}.bagcount{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#fff;color:#000;font-size:9px;font-weight:900}
+
+.hero{max-width:var(--max);min-height:calc(100svh - 106px);margin:auto;padding:32px 28px 30px;display:grid;grid-template-columns:.8fr 1.35fr;gap:26px}
+.hero-copy{display:flex;flex-direction:column;justify-content:center;padding:40px 1vw 40px 0}
+.eyebrow,.micro{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#898984}
+.hero h1{font-size:clamp(58px,8.4vw,134px);line-height:.78;letter-spacing:-.065em;margin:18px 0 0;font-weight:950;text-transform:uppercase}
+.hero h1 em{font-style:normal;color:#272727;-webkit-text-stroke:1px rgba(255,255,255,.34)}
+.hero-copy p{max-width:540px;color:#aaa;font-size:14px;line-height:1.72;margin:28px 0}
+.cta-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{height:48px;border:1px solid var(--line);background:#f4f4ef;color:#080808;padding:0 22px;font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:transform .2s,background .2s,color .2s,border-color .2s}
+.btn:hover{transform:translateY(-2px)} .btn.ghost{background:rgba(6,6,6,.35);color:#fff;backdrop-filter:blur(8px)} .btn.ghost:hover{border-color:rgba(255,255,255,.34)}
+
+.stage{position:relative;min-height:690px;border:1px solid var(--line);overflow:hidden;background:
+linear-gradient(rgba(5,5,5,.14),rgba(5,5,5,.56)),
+url('https://cdn.3dassets.dev/assets/35480/v1/poster.webp') center/cover no-repeat;
+isolation:isolate}
+.stage:before{content:"";position:absolute;inset:-20%;z-index:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.14),transparent 29%),radial-gradient(circle at 78% 68%,rgba(239,75,47,.12),transparent 23%);filter:blur(30px)}
+#stageCanvas{position:absolute;inset:0;z-index:1}
 .stage-ui{position:absolute;inset:0;z-index:3;pointer-events:none}
-.stage-top{position:absolute;left:20px;right:20px;top:18px;display:flex;justify-content:space-between;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#b9b9b4}
-.stage-bottom{position:absolute;left:20px;right:20px;bottom:18px;display:flex;align-items:end;justify-content:space-between;gap:15px}
-.stage-product{font-size:22px;font-weight:800;letter-spacing:-.03em}.stage-sub{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#999;margin-top:5px}
-.stage-help{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#8e8e89;text-align:right}
-.stage-loading{position:absolute;inset:0;display:grid;place-items:center;z-index:5;background:rgba(9,9,9,.72);backdrop-filter:blur(3px);color:#aaa;font-size:10px;letter-spacing:.22em;text-transform:uppercase;transition:opacity .5s}
+.stage-top,.stage-bottom{position:absolute;left:20px;right:20px;display:flex;justify-content:space-between;gap:14px}.stage-top{top:18px}.stage-bottom{bottom:18px;align-items:end}
+.stage-top span,.stage-sub,.stage-help{font-size:8px;letter-spacing:.19em;text-transform:uppercase;color:#a2a29d}
+.stage-product{font-size:24px;font-weight:850;letter-spacing:-.035em;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.stage-sub{margin-top:6px}.stage-help{text-align:right;line-height:1.65}
+.stage-loading{position:absolute;inset:0;display:grid;place-items:center;z-index:5;background:rgba(8,8,8,.7);backdrop-filter:blur(5px);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#aaa;transition:opacity .45s}
 .stage-loading.hide{opacity:0;pointer-events:none}
-.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;padding:13px 0;background:#0a0a0a}
-.ticker-track{display:inline-block;animation:ticker 25s linear infinite;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:#9a9a95}
+
+.ticker{border-block:1px solid var(--line);padding:13px 0;overflow:hidden;white-space:nowrap;background:#090909}
+.ticker-track{display:inline-block;animation:ticker 26s linear infinite;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#8d8d88}
 @keyframes ticker{to{transform:translateX(-50%)}}
-.section{max-width:var(--max);margin:auto;padding:84px 28px}
-.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:32px;gap:18px}.section-kicker{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8f8f8a}.section-title{font-size:clamp(34px,5vw,70px);font-weight:900;letter-spacing:-.055em;text-transform:uppercase;margin:6px 0 0}
-.filters{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#0c0c0c;color:#aaa;padding:10px 14px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}.filter.active,.filter:hover{background:#f4f4f0;color:#0a0a0a}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.card{background:#0d0d0d;border:1px solid var(--line);cursor:pointer;transition:transform .25s,border-color .25s;overflow:hidden}.card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.35)}
-.card-media{position:relative;aspect-ratio:4/5;background:linear-gradient(145deg,#1b1b1b,#090909);overflow:hidden}
-.card-media img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.58) contrast(1.22);transform:scale(1.02);transition:transform .45s,filter .45s}.card:hover img{transform:scale(1.06);filter:grayscale(.82) brightness(.7) contrast(1.18)}
-.card-media:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(0,0,0,.58))}
-.card-index{position:absolute;z-index:2;top:14px;left:14px;font-size:9px;letter-spacing:.16em;color:#b7b7b2}
-.quick{position:absolute;z-index:3;left:14px;right:14px;bottom:14px;height:42px;border:1px solid rgba(255,255,255,.25);background:rgba(5,5,5,.72);backdrop-filter:blur(10px);color:white;font-size:9px;letter-spacing:.17em;text-transform:uppercase;opacity:0;transform:translateY(8px);transition:.25s;cursor:pointer}.card:hover .quick{opacity:1;transform:none}
-.card-info{padding:17px 16px 18px}.card-row{display:flex;justify-content:space-between;gap:12px}.card-name{font-size:13px;font-weight:750;letter-spacing:.02em}.price{font-size:12px;color:#d0d0cb}.meta{margin-top:8px;color:#7f7f7a;font-size:9px;letter-spacing:.15em;text-transform:uppercase}
-.editorial{max-width:var(--max);margin:20px auto 0;padding:0 28px}.editorial-inner{min-height:380px;border:1px solid var(--line);background:
-radial-gradient(circle at 18% 20%,rgba(240,74,36,.3),transparent 26%),
-linear-gradient(135deg,#171717,#080808 60%);
-display:grid;grid-template-columns:1.2fr .8fr;overflow:hidden}
-.editorial-copy{padding:56px;display:flex;flex-direction:column;justify-content:center}.editorial-copy h2{font-size:clamp(42px,6vw,92px);line-height:.83;letter-spacing:-.06em;margin:0;text-transform:uppercase}.editorial-copy p{color:#aaa;max-width:540px;line-height:1.7;font-size:13px}.tag-wall{position:relative;min-height:320px;background:
-repeating-linear-gradient(9deg,transparent 0 22px,rgba(255,255,255,.03) 23px 24px),
-linear-gradient(145deg,#191919,#0a0a0a)}
-.tag-wall:before{content:"GUARDIAN\A K9";white-space:pre;position:absolute;right:6%;top:15%;font-size:clamp(65px,10vw,150px);font-weight:950;line-height:.73;letter-spacing:-.07em;color:#252525;transform:rotate(-7deg)}
-.footer{border-top:1px solid var(--line);margin-top:90px;padding:50px 28px 70px}.footer-inner{max-width:var(--max);margin:auto;display:grid;grid-template-columns:1.5fr repeat(2,1fr);gap:30px}.footer-brand{font-size:28px;font-weight:900;letter-spacing:.04em}.footer p,.footer a{font-size:11px;color:#8e8e89;line-height:1.8}.footer h4{font-size:9px;letter-spacing:.18em;text-transform:uppercase;margin:0 0 15px}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:900;opacity:0;pointer-events:none;transition:.28s}.overlay.show{opacity:1;pointer-events:auto}
-.product-panel{position:fixed;z-index:950;right:0;top:0;height:100%;width:min(720px,100%);background:#0b0b0b;border-left:1px solid var(--line);transform:translateX(100%);transition:transform .36s cubic-bezier(.22,.75,.2,1);display:grid;grid-template-rows:auto 1fr}.product-panel.show{transform:none}
-.panel-head{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px}.panel-head span{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aaa}.close{width:42px;height:42px;border:1px solid var(--line);background:#0c0c0c;color:white;border-radius:50%;font-size:22px;cursor:pointer}
-.panel-body{overflow:auto;padding:18px}.product-visual{aspect-ratio:4/3;background:#121212;border:1px solid var(--line);overflow:hidden}.product-visual img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.7) contrast(1.2)}
-.panel-info{padding:28px 4px}.panel-info h3{font-size:36px;letter-spacing:-.04em;margin:0 0 8px}.panel-price{font-size:14px;color:#ccc;margin-bottom:24px}.desc{color:#9b9b96;font-size:13px;line-height:1.7;max-width:570px}
-.option-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#858580;margin:25px 0 10px}.sizes{display:flex;gap:8px;flex-wrap:wrap}.size{width:48px;height:42px;border:1px solid var(--line);background:#111;color:#ddd;cursor:pointer}.size.active{background:white;color:black}
-.add{width:100%;height:54px;margin-top:24px;border:0;background:white;color:black;font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
-.bag-drawer{position:fixed;z-index:960;right:0;top:0;height:100%;width:min(420px,100%);background:#0b0b0b;border-left:1px solid var(--line);transform:translateX(100%);transition:.34s;display:flex;flex-direction:column}.bag-drawer.show{transform:none}.bag-items{padding:18px;overflow:auto;flex:1}.bag-empty{color:#888;font-size:12px;padding:30px 0}.bag-item{display:grid;grid-template-columns:74px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.bag-item img{width:74px;height:90px;object-fit:cover;filter:grayscale(1) brightness(.65)}.bag-item strong{font-size:12px}.bag-item small{display:block;color:#888;margin-top:6px}.bag-footer{padding:18px;border-top:1px solid var(--line)}.subtotal{display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px}
-@media(max-width:980px){.hero{grid-template-columns:1fr;padding-top:26px}.hero-copy{padding:28px 0 8px}.stage{min-height:560px}.grid{grid-template-columns:repeat(2,1fr)}.navlinks{display:none}.editorial-inner{grid-template-columns:1fr}.tag-wall{min-height:260px}}
-@media(max-width:600px){.announcement{font-size:8px}.site-header{height:62px}.nav{padding:0 16px}.logo{font-size:14px}.hero{padding:22px 14px 16px;gap:18px}.hero h1{font-size:18vw}.hero-copy p{font-size:13px;margin:20px 0}.stage{min-height:66svh}.stage-top,.stage-bottom{left:14px;right:14px}.stage-help{display:none}.section{padding:64px 14px}.section-head{align-items:start;flex-direction:column}.grid{grid-template-columns:1fr 1fr;gap:8px}.card-info{padding:12px 10px}.card-name{font-size:11px}.price{font-size:10px}.meta{font-size:8px}.quick{display:none}.editorial{padding:0 14px}.editorial-copy{padding:34px 22px}.footer{padding:44px 16px}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}.product-panel{width:100%}.panel-info h3{font-size:30px}}
+
+.section{max-width:var(--max);margin:auto;padding:96px 28px}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:34px}
+.section-title{font-size:clamp(40px,5.8vw,82px);font-weight:950;line-height:.84;letter-spacing:-.062em;text-transform:uppercase;margin:7px 0 0}
+.filters{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#0c0c0c;padding:10px 14px;font-size:8px;letter-spacing:.17em;text-transform:uppercase;color:#8e8e89;cursor:pointer}.filter.active,.filter:hover{background:#f4f4ef;color:#050505}
+
+/* interactive drop */
+.collection-shell{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(420px,.95fr);gap:18px;align-items:start}
+.collection-preview{position:sticky;top:106px;min-height:720px;border:1px solid var(--line);background:#0a0a0a;overflow:hidden;perspective:1600px}
+.preview-media{position:absolute;inset:0;overflow:hidden;background:linear-gradient(145deg,#191919,#080808)}
+.preview-media img{width:100%;height:100%;object-fit:cover;filter:grayscale(.96) brightness(.78) contrast(1.13);transform:scale(1.04);transition:filter .45s,transform .35s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.preview-media:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.08) 44%,rgba(0,0,0,.8) 100%),radial-gradient(circle at 68% 22%,rgba(255,255,255,.11),transparent 24%)}
+.preview-grain{position:absolute;inset:0;opacity:.14;mix-blend-mode:screen;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+.preview-top{position:absolute;left:20px;right:20px;top:18px;z-index:3;display:flex;justify-content:space-between;gap:12px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#c6c6c1}
+.preview-info{position:absolute;left:24px;right:24px;bottom:24px;z-index:3;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+.preview-name{font-size:clamp(34px,4vw,62px);font-weight:950;line-height:.88;letter-spacing:-.055em;text-transform:uppercase;margin:0 0 10px}
+.preview-meta{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#aaa;margin-bottom:14px}
+.preview-desc{max-width:560px;color:#bababa;font-size:12px;line-height:1.65}
+.preview-price{font-size:20px;font-weight:800;text-align:right;margin-bottom:12px}
+.preview-actions{display:flex;gap:8px;justify-content:flex-end}.preview-actions .btn{height:42px;padding:0 14px}
+
+.product-stack{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.product-row{position:relative;display:grid;grid-template-columns:78px 58px 1fr auto;gap:16px;align-items:center;min-height:132px;padding:18px 14px;border-bottom:1px solid var(--line);background:#090909;cursor:pointer;transform-style:preserve-3d;transition:background .25s,border-color .25s,transform .16s;will-change:transform}
+.product-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:#fff;transform:scaleY(0);transform-origin:center;transition:.28s}
+.product-row.active,.product-row:hover{background:#101010;border-color:rgba(255,255,255,.22)}
+.product-row.active:before{transform:scaleY(1)}
+.row-thumb{width:78px;height:96px;object-fit:cover;filter:grayscale(1) brightness(.64) contrast(1.15);transition:.3s}.product-row:hover .row-thumb,.product-row.active .row-thumb{filter:grayscale(.85) brightness(.83) contrast(1.1);transform:scale(1.03)}
+.row-index{font-size:8px;letter-spacing:.2em;color:#777}
+.row-name{font-size:18px;font-weight:820;letter-spacing:-.025em}.row-meta{margin-top:8px;font-size:8px;letter-spacing:.17em;text-transform:uppercase;color:#777}
+.row-price{font-size:12px;color:#c7c7c2;white-space:nowrap}.row-arrow{margin-top:8px;font-size:14px;color:#72726e;transition:.25s}.product-row:hover .row-arrow,.product-row.active .row-arrow{transform:translateX(5px);color:#fff}
+
+.collection-mobile-hint{display:none;margin-top:12px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#6f6f6b}
+
+/* editorial realism */
+.editorial{max-width:var(--max);margin:0 auto;padding:20px 28px 0}
+.editorial-inner{min-height:520px;border:1px solid var(--line);display:grid;grid-template-columns:.82fr 1.18fr;background:#090909;overflow:hidden}
+.editorial-copy{padding:58px;display:flex;flex-direction:column;justify-content:center}
+.editorial-copy h2{font-size:clamp(48px,6.8vw,104px);line-height:.8;letter-spacing:-.065em;text-transform:uppercase;margin:10px 0 18px}
+.editorial-copy p{max-width:560px;color:#aaa;line-height:1.7;font-size:13px}
+.editorial-visual{position:relative;min-height:520px;background:url('https://cdn.3dassets.dev/assets/35480/v1/poster.webp') center/cover no-repeat}
+.editorial-visual:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#090909 0,transparent 25%,rgba(0,0,0,.18) 100%),linear-gradient(180deg,transparent 56%,rgba(0,0,0,.52))}
+.editorial-visual:after{content:"GUARDIAN K9";position:absolute;right:20px;bottom:18px;font-size:9px;letter-spacing:.22em;color:#ddd;text-transform:uppercase}
+
+.footer{border-top:1px solid var(--line);margin-top:92px;padding:52px 28px 72px}.footer-inner{max-width:var(--max);margin:auto;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:32px}.footer-brand{font-size:30px;font-weight:950;letter-spacing:.02em}.footer p,.footer a{font-size:11px;line-height:1.85;color:#898984}.footer h4{font-size:8px;letter-spacing:.18em;text-transform:uppercase;margin:0 0 14px}
+
+/* drawers */
+.overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:.28s}.overlay.show{opacity:1;pointer-events:auto}
+.product-panel,.bag-drawer{position:fixed;right:0;top:0;height:100%;background:#0b0b0b;border-left:1px solid var(--line);z-index:950;transform:translateX(100%);transition:transform .38s cubic-bezier(.2,.72,.22,1)}
+.product-panel{width:min(760px,100%);display:grid;grid-template-rows:auto 1fr}.bag-drawer{width:min(430px,100%);display:flex;flex-direction:column;z-index:960}.product-panel.show,.bag-drawer.show{transform:none}
+.panel-head{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px}.panel-head span{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#9a9a95}
+.close{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#0d0d0d;color:white;font-size:22px;cursor:pointer}
+.panel-body{overflow:auto;padding:18px}.product-visual{aspect-ratio:5/4;border:1px solid var(--line);background:#111;overflow:hidden;position:relative}.product-visual img{width:100%;height:100%;object-fit:cover;filter:grayscale(.92) brightness(.76) contrast(1.12)}
+.product-visual:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.48))}
+.panel-info{padding:28px 4px 36px}.panel-info h3{font-size:42px;letter-spacing:-.05em;margin:5px 0 8px}.panel-price{font-size:14px;color:#ccc;margin-bottom:22px}.desc{max-width:590px;color:#9f9f9a;font-size:13px;line-height:1.72}
+.option-label{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#777;margin:26px 0 10px}.sizes{display:flex;gap:8px;flex-wrap:wrap}.size{width:50px;height:42px;border:1px solid var(--line);background:#111;color:#ddd;cursor:pointer}.size.active{background:#f4f4ef;color:#090909}
+.add{width:100%;height:54px;margin-top:24px;border:0;background:#f4f4ef;color:#090909;font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+.bag-items{padding:18px;overflow:auto;flex:1}.bag-empty{color:#777;font-size:12px;padding:30px 0}.bag-item{display:grid;grid-template-columns:74px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.bag-item img{width:74px;height:90px;object-fit:cover;filter:grayscale(.9) brightness(.72)}.bag-item strong{font-size:12px}.bag-item small{display:block;color:#777;margin-top:6px}.bag-footer{padding:18px;border-top:1px solid var(--line)}.subtotal{display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}.reveal.in{opacity:1;transform:none}
+
+@media(max-width:1050px){
+  .hero{grid-template-columns:1fr}.hero-copy{padding:34px 0 6px}.stage{min-height:620px}
+  .collection-shell{grid-template-columns:1fr}.collection-preview{position:relative;top:auto;min-height:620px}
+  .product-stack{display:grid;grid-template-columns:1fr 1fr}.product-row{grid-template-columns:68px 44px 1fr;min-height:118px}.row-price{grid-column:3}
+  .editorial-inner{grid-template-columns:1fr}.editorial-visual{min-height:380px}.navlinks{display:none}
+}
+@media(max-width:700px){
+  .announcement{font-size:7px}.site-header{height:64px}.nav{padding:0 14px}.logo{font-size:13px}.logo span{font-size:12px}
+  .hero{padding:20px 14px 18px;gap:18px}.hero-copy{padding-top:26px}.hero h1{font-size:18vw}.hero-copy p{font-size:13px;margin:20px 0}
+  .stage{min-height:67svh}.stage-top,.stage-bottom{left:14px;right:14px}.stage-help{display:none}.stage-product{font-size:20px}
+  .section{padding:68px 14px}.section-head{align-items:start;flex-direction:column;margin-bottom:24px}.section-title{font-size:15vw}
+  .collection-preview{min-height:65svh}.preview-info{left:16px;right:16px;bottom:16px;grid-template-columns:1fr}.preview-name{font-size:11vw}.preview-price{text-align:left;font-size:16px}.preview-actions{justify-content:flex-start}.preview-desc{font-size:11px}
+  .product-stack{display:flex;flex-direction:row;overflow-x:auto;gap:10px;padding:12px 0 6px;border:0;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.product-stack::-webkit-scrollbar{display:none}
+  .product-row{min-width:78vw;scroll-snap-align:center;grid-template-columns:74px 1fr;gap:12px;border:1px solid var(--line);min-height:126px;padding:12px}.row-index{display:none}.row-price{grid-column:2}.row-name{font-size:16px}.row-arrow{display:none}.collection-mobile-hint{display:block}
+  .editorial{padding:0 14px}.editorial-copy{padding:36px 22px}.editorial-copy h2{font-size:15vw}.editorial-visual{min-height:330px}
+  .footer{padding:46px 16px}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}
+  .product-panel{width:100%}.panel-info h3{font-size:34px}
+}
 </style>
 </head>
 <body>
@@ -78,26 +138,26 @@ linear-gradient(145deg,#191919,#0a0a0a)}
   <div class="nav">
     <a class="logo" href="#">GUARDIAN K9 <span>FIELD SUPPLY</span></a>
     <nav class="navlinks"><a href="#collection">Collection</a><a href="#showroom">3D Showroom</a><a href="#about">Field Notes</a></nav>
-    <div class="actions"><button class="iconbtn" id="bagBtn" aria-label="Bag">B<span class="bagcount" id="bagCount">0</span></button></div>
+    <div class="actions"><button class="iconbtn" id="bagBtn" aria-label="Bag">BAG <span class="bagcount" id="bagCount">0</span></button></div>
   </div>
 </header>
 
 <main>
-<section class="hero" id="showroom">
+<section class="hero reveal" id="showroom">
   <div class="hero-copy">
     <div class="eyebrow">Guardian K9 / Drop 01</div>
     <h1>FIELD<br><em>SUPPLY</em></h1>
-    <p>Technical streetwear built around the Guardian K9 identity. A dark, utility-led collection designed to move from training field to city without changing character.</p>
-    <div class="cta-row"><a class="btn" href="#collection">Shop the drop</a><button class="btn ghost" id="viewStage">Explore in 3D</button></div>
+    <p>Technical streetwear built around the Guardian K9 identity. Dark, utility-led pieces designed to move from training field to city without losing character.</p>
+    <div class="cta-row"><a class="btn" href="#collection">Shop the drop</a><button class="btn ghost" id="viewStage">Enter 3D showroom</button></div>
   </div>
   <div class="stage">
     <div id="stageCanvas"></div>
     <div class="stage-loading" id="stageLoading">Entering showroom</div>
     <div class="stage-ui">
-      <div class="stage-top"><span>Interactive showroom</span><span>01 / 06</span></div>
+      <div class="stage-top"><span>Interactive / WebGL</span><span id="stageIndex">01 / 06</span></div>
       <div class="stage-bottom">
-        <div><div class="stage-product" id="stageProduct">FIELD HOODIE</div><div class="stage-sub">Drag to rotate · tap products below to switch</div></div>
-        <div class="stage-help">Move pointer / drag<br>Scroll to zoom</div>
+        <div><div class="stage-product" id="stageProduct">FIELD HOODIE</div><div class="stage-sub">Drag to orbit · pinch / wheel to zoom</div></div>
+        <div class="stage-help">Move / drag / zoom<br>Tap a product to switch</div>
       </div>
     </div>
   </div>
@@ -105,25 +165,69 @@ linear-gradient(145deg,#191919,#0a0a0a)}
 
 <div class="ticker"><div class="ticker-track">GUARDIAN K9 · FIELD SUPPLY · BUILT FOR THE HANDLER · WORN EVERYWHERE ELSE · GUARDIAN K9 · FIELD SUPPLY · BUILT FOR THE HANDLER · WORN EVERYWHERE ELSE · </div></div>
 
-<section class="section" id="collection">
+<section class="section reveal" id="collection">
   <div class="section-head">
-    <div><div class="section-kicker">Collection / 001</div><h2 class="section-title">The Drop</h2></div>
+    <div><div class="micro">Collection / 001</div><h2 class="section-title">The Drop</h2></div>
     <div class="filters"><button class="filter active">All</button><button class="filter">Tops</button><button class="filter">Accessories</button></div>
   </div>
-  <div class="grid">
-    <article class="card" data-product="hoodie"><div class="card-media"><img src="https://cdn.3dassets.dev/assets/27162/v1/poster.webp" alt="Field hoodie concept"><span class="card-index">01 / 06</span><button class="quick">Quick view</button></div><div class="card-info"><div class="card-row"><span class="card-name">FIELD HOODIE</span><span class="price">$148</span></div><div class="meta">Heavyweight / Black</div></div></article>
-    <article class="card" data-product="zip"><div class="card-media"><img src="https://cdn.3dassets.dev/assets/27161/v1/poster.webp" alt="Operator zip concept"><span class="card-index">02 / 06</span><button class="quick">Quick view</button></div><div class="card-info"><div class="card-row"><span class="card-name">OPERATOR ZIP</span><span class="price">$168</span></div><div class="meta">Full zip / Black</div></div></article>
-    <article class="card" data-product="tee"><div class="card-media"><img src="https://cdn.3dassets.dev/assets/35447/v1/poster.webp" alt="Street tee concept"><span class="card-index">03 / 06</span><button class="quick">Quick view</button></div><div class="card-info"><div class="card-row"><span class="card-name">STREET TEE</span><span class="price">$62</span></div><div class="meta">Heavy cotton / Black</div></div></article>
-    <article class="card" data-product="long"><div class="card-media"><img src="https://cdn.3dassets.dev/assets/35450/v1/poster.webp" alt="Long sleeve concept"><span class="card-index">04 / 06</span><button class="quick">Quick view</button></div><div class="card-info"><div class="card-row"><span class="card-name">NIGHT LONG SLEEVE</span><span class="price">TBD</span></div><div class="meta">Layer / Black</div></div></article>
-    <article class="card" data-product="cap"><div class="card-media"><img src="https://cdn.3dassets.dev/assets/33769/v1/poster.webp" alt="Guardian cap concept"><span class="card-index">05 / 06</span><button class="quick">Quick view</button></div><div class="card-info"><div class="card-row"><span class="card-name">HANDLER CAP</span><span class="price">TBD</span></div><div class="meta">Structured / Black</div></div></article>
-    <article class="card" data-product="stickers"><div class="card-media"><img src="https://cdn.3dassets.dev/assets/2626/v1/poster.webp" alt="Sticker pack concept"><span class="card-index">06 / 06</span><button class="quick">Quick view</button></div><div class="card-info"><div class="card-row"><span class="card-name">FIELD MARKS PACK</span><span class="price">TBD</span></div><div class="meta">Sticker set / Drop 01</div></div></article>
+
+  <div class="collection-shell">
+    <div class="collection-preview" id="collectionPreview">
+      <div class="preview-media" id="previewMedia">
+        <img id="previewImage" src="https://cdn.3dassets.dev/assets/27162/v1/poster.webp" alt="Field Hoodie">
+        <div class="preview-grain"></div>
+      </div>
+      <div class="preview-top"><span>Live product focus</span><span id="previewCounter">01 / 06</span></div>
+      <div class="preview-info">
+        <div>
+          <h3 class="preview-name" id="previewName">FIELD HOODIE</h3>
+          <div class="preview-meta" id="previewMeta">Heavyweight / Black / Drop 01</div>
+          <div class="preview-desc" id="previewDesc">Heavyweight pullover hoodie with a field-first silhouette, restrained branding and a substantial hand feel.</div>
+        </div>
+        <div>
+          <div class="preview-price" id="previewPrice">$148 CAD</div>
+          <div class="preview-actions">
+            <button class="btn ghost" id="preview3d">View in 3D</button>
+            <button class="btn" id="previewQuick">Quick view</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-stack" id="productStack">
+      <article class="product-row active" data-product="hoodie">
+        <img class="row-thumb" src="https://cdn.3dassets.dev/assets/27162/v1/poster.webp" alt="">
+        <div class="row-index">01</div><div><div class="row-name">FIELD HOODIE</div><div class="row-meta">Heavyweight / Pullover</div><div class="row-arrow">→</div></div><div class="row-price">$148</div>
+      </article>
+      <article class="product-row" data-product="zip">
+        <img class="row-thumb" src="https://cdn.3dassets.dev/assets/27161/v1/poster.webp" alt="">
+        <div class="row-index">02</div><div><div class="row-name">OPERATOR ZIP</div><div class="row-meta">Full zip / Hooded layer</div><div class="row-arrow">→</div></div><div class="row-price">$168</div>
+      </article>
+      <article class="product-row" data-product="tee">
+        <img class="row-thumb" src="https://cdn.3dassets.dev/assets/35447/v1/poster.webp" alt="">
+        <div class="row-index">03</div><div><div class="row-name">STREET TEE</div><div class="row-meta">Heavy cotton / Straight fit</div><div class="row-arrow">→</div></div><div class="row-price">$62</div>
+      </article>
+      <article class="product-row" data-product="long">
+        <img class="row-thumb" src="https://cdn.3dassets.dev/assets/35450/v1/poster.webp" alt="">
+        <div class="row-index">04</div><div><div class="row-name">NIGHT LONG SLEEVE</div><div class="row-meta">Layer / Black</div><div class="row-arrow">→</div></div><div class="row-price">TBD</div>
+      </article>
+      <article class="product-row" data-product="cap">
+        <img class="row-thumb" src="https://cdn.3dassets.dev/assets/33769/v1/poster.webp" alt="">
+        <div class="row-index">05</div><div><div class="row-name">HANDLER CAP</div><div class="row-meta">Structured / Black</div><div class="row-arrow">→</div></div><div class="row-price">TBD</div>
+      </article>
+      <article class="product-row" data-product="stickers">
+        <img class="row-thumb" src="https://cdn.3dassets.dev/assets/2626/v1/poster.webp" alt="">
+        <div class="row-index">06</div><div><div class="row-name">FIELD MARKS PACK</div><div class="row-meta">Sticker set / Drop 01</div><div class="row-arrow">→</div></div><div class="row-price">TBD</div>
+      </article>
+    </div>
   </div>
+  <div class="collection-mobile-hint">Swipe products · tap to focus · drag the image to inspect</div>
 </section>
 
-<section class="editorial" id="about">
+<section class="editorial reveal" id="about">
   <div class="editorial-inner">
-    <div class="editorial-copy"><div class="section-kicker">Field Notes / 01</div><h2>Built for<br>the handler.</h2><p>Minimal branding, hard-wearing silhouettes and a restrained palette. The collection is meant to feel issued, not decorated.</p></div>
-    <div class="tag-wall"></div>
+    <div class="editorial-copy"><div class="micro">Field Notes / 01</div><h2>Built for<br>the handler.</h2><p>Dark materials, hard-wearing silhouettes and deliberate restraint. The visual language comes from working-dog culture, technical kit and premium streetwear rather than traditional pet merchandise.</p></div>
+    <div class="editorial-visual"></div>
   </div>
 </section>
 </main>
@@ -135,7 +239,7 @@ linear-gradient(145deg,#191919,#0a0a0a)}
   <div class="panel-head"><span>Product detail</span><button class="close" id="productClose">×</button></div>
   <div class="panel-body">
     <div class="product-visual"><img id="panelImage" alt=""></div>
-    <div class="panel-info"><div class="section-kicker" id="panelCode">Drop 01</div><h3 id="panelName"></h3><div class="panel-price" id="panelPrice"></div><p class="desc" id="panelDesc"></p><div class="option-label">Size</div><div class="sizes" id="sizeOptions"><button class="size">S</button><button class="size active">M</button><button class="size">L</button><button class="size">XL</button></div><button class="add" id="addBtn">Add to bag</button></div>
+    <div class="panel-info"><div class="micro" id="panelCode">Drop 01</div><h3 id="panelName"></h3><div class="panel-price" id="panelPrice"></div><p class="desc" id="panelDesc"></p><div class="option-label">Size</div><div class="sizes" id="sizeOptions"><button class="size">S</button><button class="size active">M</button><button class="size">L</button><button class="size">XL</button></div><button class="add" id="addBtn">Add to bag</button></div>
   </div>
 </aside>
 
@@ -149,13 +253,9 @@ linear-gradient(145deg,#191919,#0a0a0a)}
 window.__GK_SHOWROOM_READY__=false;
 setTimeout(function(){
   var el=document.getElementById('stageLoading');
-  if(el && !window.__GK_SHOWROOM_READY__){
-    el.textContent='3D PREVIEW UNAVAILABLE — STORE VIEW ACTIVE';
-    el.style.opacity='0';
-    el.style.pointerEvents='none';
-  }
+  if(el && !window.__GK_SHOWROOM_READY__){el.classList.add('hide');}
 },4500);
 </script>
-<script src="./bundle.js?v=20260921-1832" defer></script>
+<script src="./bundle.js?v=20260921-1956" defer></script>
 </body>
 </html>
