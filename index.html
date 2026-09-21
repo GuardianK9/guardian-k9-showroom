@@ -23,10 +23,18 @@
   <div class="loading" id="loading">Loading Field Supply</div>
   <div class="hud"><div class="accent"></div><div class="brand"><div class="kicker">Guardian K9</div><div class="title">FIELD<br/>SUPPLY</div></div><div class="focusBadge" id="focusBadge">Drag to inspect · Scroll to zoom</div><div class="hint" id="hint">Move to explore<br/>Click a product</div><div class="hoverLabel" id="hoverLabel"></div></div>
 </div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const app=document.getElementById('app'),hoverLabel=document.getElementById('hoverLabel'),loading=document.getElementById('loading'),hint=document.getElementById('hint'),focusBadge=document.getElementById('focusBadge');
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;app.prepend(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x050505);scene.fog=new THREE.FogExp2(0x050505,.045);
@@ -61,7 +69,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{if(mode==='FOCUSED'){drag
 renderer.domElement.addEventListener('wheel',e=>{if(mode==='FOCUSED'){e.preventDefault();const dir=new THREE.Vector3().subVectors(camera.position,controls.target).normalize(),d=camera.position.distanceTo(controls.target),nd=THREE.MathUtils.clamp(d+Math.sign(e.deltaY)*.18,1.4,3.4);targetCamPos.copy(targetCamLook).add(dir.multiplyScalar(nd))}},{passive:false});
 window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='GUARDIAN_RETURN_HOME')exitFocus();if(d.type==='GUARDIAN_PRODUCT_VIEW'&&selectedProduct&&(d.view==='front'||d.view==='back'))targetRotY=selectedProduct.userData.homeRot.y+(d.view==='back'?Math.PI:0)});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&selectedProduct)exitFocus()});
 function animate(){requestAnimationFrame(animate);clock.getDelta();smoothedPointer.lerp(pointer,.035);products.forEach(g=>{const hovered=g===hoverProduct&&mode==='EXPLORE',s=hovered?1.045:1;g.scale.lerp(new THREE.Vector3(s,s,s),.1);if(mode==='EXPLORE'){const homeY=g.userData.homePos.y;g.position.y=THREE.MathUtils.lerp(g.position.y,homeY+(hovered?.045:0),.1);const hr=g.userData.homeRot.y+(hovered?smoothedPointer.x*.08:0);g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,hr,.08)}});if(mode==='EXPLORE'){targetCamPos.set(smoothedPointer.x*.18,2.2+smoothedPointer.y*.10,7.4);targetCamLook.set(smoothedPointer.x*.09,1.35+smoothedPointer.y*.04,0)}camera.position.lerp(targetCamPos,mode==='EXPLORE'?.025:.055);controls.target.lerp(targetCamLook,mode==='EXPLORE'?.025:.06);if(selectedProduct){selectedProduct.rotation.y=THREE.MathUtils.lerp(selectedProduct.rotation.y,targetRotY,.12);if(mode==='FOCUSING'||mode==='FOCUSED'){selectedProduct.position.y=THREE.MathUtils.lerp(selectedProduct.position.y,1.35,.06);selectedProduct.scale.lerp(new THREE.Vector3(1.35,1.35,1.35),.07)}}controls.update();renderer.render(scene,camera)}
-Promise.all([loadEnvironment(),...productDefs.map(loadProduct)]).then(()=>{loading.textContent='FIELD SUPPLY READY';setTimeout(()=>loading.classList.add('hide'),450);animate()}).catch(err=>{console.error(err);loading.textContent='Showroom failed to load'});
+Promise.allSettled([loadEnvironment(),...productDefs.map(loadProduct)]).then(results=>{const ok=results.filter(r=>r.status==='fulfilled').length;const failed=results.length-ok;results.filter(r=>r.status==='rejected').forEach(r=>console.error(r.reason));loading.textContent=ok>0?'FIELD SUPPLY READY':'Showroom failed to load';if(ok>0)setTimeout(()=>loading.classList.add('hide'),450);if(failed>0)console.warn(failed+' showroom assets failed to load');animate();});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight)});
 </script>
 </body>
