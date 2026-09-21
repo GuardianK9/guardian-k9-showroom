@@ -149,7 +149,7 @@ try{
   async function getModel(key){
     if(cache.has(key))return cache.get(key).clone(true);
     const p=productData[key];if(!p.model)return null;
-    const g=await loader.loadAsync(p.model),root=g.scene;tune(root,false);normalize(root,key==='cap'?.95:key==='stickers'?.8:key==='tee'?1.6:1.9);cache.set(key,root);return root.clone(true);
+    const g=await loader.loadAsync(p.model),root=g.scene;tune(root,false);normalize(root,key==='cap'?0.95:key==='stickers'?0.8:key==='tee'?1.6:1.9);cache.set(key,root);return root.clone(true);
   }
   window.__set3DProduct=async key=>{
     try{
