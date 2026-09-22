@@ -72,7 +72,13 @@ bagBtn.onclick=()=>{overlay.classList.add('show');bagDrawer.classList.add('show'
 q('#viewStage').onclick=()=>q('#showroom').scrollIntoView({behavior:'smooth'});
 q('#previewQuick').onclick=()=>openProduct(activeKey);
 q('#preview3d').onclick=()=>{q('#showroom').scrollIntoView({behavior:'smooth'});setTimeout(()=>setActiveProduct(activeKey,true),350)};
-addBtn.onclick=()=>{const p=productData[activeProduct||activeKey];bag.push({key:activeProduct||activeKey,size:selectedSize,price:p.price});renderBag();closePanels();bagDrawer.classList.add('show');overlay.classList.add('show')};
+addBtn.onclick=()=>{
+  const key=activeProduct||activeKey,p=productData[key];
+  const parentCart=new URLSearchParams(location.search).get('parentCart')==='1';
+  window.parent?.postMessage({type:'GUARDIAN_ADD_TO_BAG',productId:key,size:selectedSize,price:p.price,name:p.name},'*');
+  if(parentCart){closePanels();return;}
+  bag.push({key,size:selectedSize,price:p.price});renderBag();closePanels();bagDrawer.classList.add('show');overlay.classList.add('show');
+};
 
 function updatePreview(key){
   const p=productData[key],i=order.indexOf(key);
