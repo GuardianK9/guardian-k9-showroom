@@ -141,6 +141,16 @@ body.embed .stage{min-height:640px}
 body.embed .ticker{margin-top:0}
 body.embed .section{padding-top:72px}
 body.embed .editorial{padding-bottom:28px}
+body.stage-only .announcement,
+body.stage-only .site-header,
+body.stage-only .hero-copy,
+body.stage-only .ticker,
+body.stage-only #collection,
+body.stage-only .editorial,
+body.stage-only .footer{display:none!important}
+body.stage-only .hero{display:block;min-height:auto;padding:0;margin:0;max-width:none}
+body.stage-only .stage{min-height:100svh;border:0}
+body.stage-only{background:#070707;overflow:hidden}
 @media(max-width:700px){
   body.embed .hero{padding:12px 14px 14px}
   body.embed .stage{min-height:64svh}
@@ -276,6 +286,7 @@ setTimeout(function(){
 (function(){
   const params=new URLSearchParams(location.search);
   if(params.get('embed')==='1') document.body.classList.add('embed');
+  if(params.get('stageOnly')==='1') document.body.classList.add('stage-only');
 })();
 </script>
 <script src="./bundle.js?v=20260922-base44" defer></script>
