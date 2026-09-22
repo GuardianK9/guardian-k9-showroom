@@ -130,6 +130,22 @@ isolation:isolate}
   .footer{padding:46px 16px}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}
   .product-panel{width:100%}.panel-info h3{font-size:34px}
 }
+
+body.embed .announcement,
+body.embed .site-header,
+body.embed .footer{display:none!important}
+body.embed .hero{min-height:auto;padding-top:18px}
+body.embed .hero-copy{display:none!important}
+body.embed .hero{grid-template-columns:1fr;max-width:1480px}
+body.embed .stage{min-height:640px}
+body.embed .ticker{margin-top:0}
+body.embed .section{padding-top:72px}
+body.embed .editorial{padding-bottom:28px}
+@media(max-width:700px){
+  body.embed .hero{padding:12px 14px 14px}
+  body.embed .stage{min-height:64svh}
+  body.embed .section{padding-top:54px}
+}
 </style>
 </head>
 <body>
@@ -256,6 +272,12 @@ setTimeout(function(){
   if(el && !window.__GK_SHOWROOM_READY__){el.classList.add('hide');}
 },4500);
 </script>
-<script src="./bundle.js?v=20260921-1956" defer></script>
+<script>
+(function(){
+  const params=new URLSearchParams(location.search);
+  if(params.get('embed')==='1') document.body.classList.add('embed');
+})();
+</script>
+<script src="./bundle.js?v=20260922-base44" defer></script>
 </body>
 </html>
