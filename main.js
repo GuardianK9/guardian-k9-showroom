@@ -184,3 +184,24 @@ window.addEventListener('message',e=>{
   const d=e.data||{};if(d.type==='GUARDIAN_PRODUCT_VIEW'&&currentProductGroup)currentProductGroup.rotation.y=d.view==='back'?Math.PI:0;
   if(d.type==='GUARDIAN_RETURN_HOME'){closePanels();setActiveProduct('hoodie',true)}
 });
+
+
+// Base44 embed bridge: keep iframe height synchronized and surface product events.
+(function(){
+  const embedded = new URLSearchParams(location.search).get('embed') === '1';
+  if(!embedded) return;
+  const sendHeight = () => {
+    const height = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    window.parent?.postMessage({type:'GUARDIAN_EMBED_HEIGHT',height},'*');
+  };
+  const ro = new ResizeObserver(sendHeight);
+  ro.observe(document.body);
+  addEventListener('load',sendHeight);
+  setTimeout(sendHeight,300);
+  setTimeout(sendHeight,1200);
+  document.querySelectorAll('[data-product]').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{
+      window.parent?.postMessage({type:'GUARDIAN_PRODUCT_HOVER',productId:el.dataset.product},'*');
+    });
+  });
+})();
